@@ -235,19 +235,21 @@
         }
 
         // bottom sheet
-        function showBottomSheet(message) {
-            bottomSheet.innerText = message;
-            bottomSheet.style.bottom = '0';
-            setTimeout(() => {
-                bottomSheet.style.bottom = '-100px'; // Esconder após 7 segundos
-            }, 7000);
-        }
+function showBottomSheet(message) {
+    if (message) {
+        bottomSheet.innerText = message;
+        bottomSheet.style.bottom = '0';
+        setTimeout(() => {
+            bottomSheet.style.bottom = '-100px'; // Esconder após 7 segundos
+        }, 7000);
+    }
+}
 
         // Verificar se é a primeira vez que está acessando
-        if (!localStorage.getItem('bottomSheetShown')) {
-            showBottomSheet();
-            localStorage.setItem('bottomSheetShown', 'true');
-        }
+if (!localStorage.getItem('bottomSheetShown')) {
+    showBottomSheet("Bem-vindo ao Meta-30! Defina suas metas e comece a sua jornada."); // Mensagem padrão
+    localStorage.setItem('bottomSheetShown', 'true');
+}
         // PWA
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
