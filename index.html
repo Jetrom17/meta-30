@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meta-30</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/@material/web@1.0.0/material.min.css">
+    <style>
+        :root {
+            --md-sys-color-primary: #2E7D32; 
+            --md-sys-color-on-primary: #FFFFFF; 
+            --md-sys-color-surface: #FFFFFF; 
+            --md-sys-color-on-surface: #1B5E20; 
+            --md-sys-color-background: #E8F5E9;
+            --md-sys-color-secondary: #66BB6A;
+        }
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: var(--md-sys-color-background);
+            padding: 2rem;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            box-sizing: border-box;
+            position: relative;
+        }
+        .todo-list-container {
+            background-color: var(--md-sys-color-surface);
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+            width: 100%;
+        }
+        h1 {
+            font-size: 2rem;
+            color: var(--md-sys-color-primary);
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .todo-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background-color: var(--md-sys-color-surface);
+            padding: 1rem;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            transition: background-color 0.3s ease;
+        }
+        .todo-item input[type="checkbox"] {
+            transform: scale(1.5);
+            accent-color: var(--md-sys-color-primary);
+        }
+        .todo-item label {
+            font-size: 1.2rem;
+            color: var(--md-sys-color-on-surface);
+            user-select: none;
+        }
+        .todo-item.completed {
+            background-color: var(--md-sys-color-primary);
+            color: var(--md-sys-color-on-primary);
+        }
+        #confetti {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+        .bottom-sheet {
+        position: fixed;
+        bottom: -100px;
+        left: 0;
+        right: 0;
+        background-color: #FFD700;
+        padding: 16px;
+        border-radius: 12px 12px 0 0;
+        box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.1);
+        transition: bottom 0.3s ease;
+        text-align: center;
+        z-index: 1000;
+}
+    </style>
+</head>
+<body>
+
+    <div class="todo-list-container">
+        <h1 id="metaTitle">Meta-30</h1>
+        <input type="text" id="metaInput" placeholder="Digite sua meta!" maxlength="15" style="width: 100%; margin-bottom: 2rem;">
+        <div class="todo-list">
+        </div>
+    </div>
+
+    <canvas id="confetti"></canvas>
+
+    <div class="bottom-sheet" id="bottomSheet">
+        Parabéns por suas conquistas! Continue assim!
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+    <script>
+        const todoList = document.querySelector('.todo-list');
+        const metaTitle = document.getElementById('metaTitle');
+        const metaInput = document.getElementById('metaInput');
+        const bottomSheet = document.getElementById('bottomSheet');
+        let checkedCount = 0;
+
+        const savedMeta = localStorage.getItem('meta');
+        if (savedMeta) {
+            metaTitle.innerText = `Meta ${savedMeta}`;
+            metaInput.style.display = 'none';
+        }
+
+        const biblicQuotes = [
+            "Não se turbe o vosso coração; credes em Deus, crede também em mim. - João 14:1",
+            "Posso todas as coisas naquele que me fortalece. - Filipenses 4:13",
+            "O Senhor é o meu pastor; nada me faltará. - Salmo 23:1",
+            "Entrega o teu caminho ao Senhor; confia nele, e o mais ele fará. - Salmo 37:5",
+            "Não andeis ansiosos de coisa alguma; antes, em tudo, sejam conhecidos diante de Deus os vossos pedidos. - Filipenses 4:6",
+            "E sabemos que todas as coisas cooperam para o bem daqueles que amam a Deus. - Romanos 8:28",
+            "E conhecereis a verdade, e a verdade vos libertará. - João 8:32",
+            "Alegrai-vos sempre no Senhor; outra vez digo: alegrai-vos. - Filipenses 4:4",
+            "O amor é paciente, é benigno; o amor não arde em ciúmes; não se ufana, não se ensoberbece. - 1 Coríntios 13:4",
+            "Bem-aventurados os pacificadores, porque eles serão chamados filhos de Deus. - Mateus 5:9",
+            "Tudo que fizerdes, fazei-o de todo o coração, como ao Senhor e não aos homens. - Colossenses 3:23",
+            "Assim como o ferro afia o ferro, o homem afia o seu companheiro. - Provérbios 27:17",
+            "A paz deixo convosco, a minha paz vos dou; não vou-la dou como a dá o mundo. - João 14:27",
+            "Não temas, porque eu sou contigo; não te assombres, porque eu sou teu Deus. - Isaías 41:10",
+            "O Senhor é bom; é uma fortaleza no dia da angústia. - Naum 1:7",
+            "Se Deus é por nós, quem será contra nós? - Romanos 8:31",
+            "A alegria do Senhor é a nossa força. - Neemias 8:10",
+            "Eu sou o caminho, a verdade e a vida. - João 14:6",
+            "Eis que estou convosco todos os dias, até a consumação do século. - Mateus 28:20",
+            "Porque eu bem sei os planos que tenho para vós, diz o Senhor. - Jeremias 29:11",
+            "A esperança que se adia enferma o coração. - Provérbios 13:12",
+            "Deus é o nosso refúgio e fortaleza, socorro bem presente na angústia. - Salmo 46:1",
+            "Aquele que habita no esconderijo do Altíssimo, à sombra do Onipotente descansará. - Salmo 91:1",
+            "Toda a Escritura é inspirada por Deus e útil para ensinar, para redarguir, para corrigir, para instruir em justiça. - 2 Timóteo 3:16",
+            "O temor do Senhor é o princípio da sabedoria. - Provérbios 9:10",
+            "Buscai, pois, em primeiro lugar, o seu reino e a sua justiça. - Mateus 6:33",
+            "Aquele que crê em mim, como diz a Escritura, do seu interior fluirão rios de água viva. - João 7:38",
+            "Seja a vossa equidade conhecida de todos os homens. - Filipenses 4:5",
+            "E não nos cansemos de fazer o bem, porque a seu tempo colheremos, se não houvermos desfalecido. - Gálatas 6:9",
+            "Os olhos do Senhor estão sobre os justos, e os seus ouvidos atentos ao seu clamor. - Salmo 34:15",
+            "A palavra do Senhor é pura; é um escudo para os que nele confiam. - Salmo 12:6",
+            "E se alguém tem falta de sabedoria, peça-a a Deus, que a todos dá liberalmente. - Tiago 1:5",
+            "Em tudo dai graças; porque esta é a vontade de Deus em Cristo Jesus para convosco. - 1 Tessalonicenses 5:18",
+            "A bondade e a misericórdia me seguirão todos os dias da minha vida. - Salmo 23:6",
+            "Não importa quão longe você esteja, o Senhor sempre estará com você. - Salmo 139:7"
+        ];
+
+        metaInput.addEventListener('input', function () {
+            const meta = metaInput.value;
+            if (meta.length <= 15) {
+                metaTitle.innerText = `Meta ${meta}`;
+                localStorage.setItem('meta', meta);
+            }
+        });
+
+        metaInput.addEventListener('change', function () {
+            metaInput.style.display = 'none';
+        });
+
+        const savedTasks = JSON.parse(localStorage.getItem('tasks')) || [];
+
+        for (let i = 1; i <= 30; i++) {
+            const div = document.createElement('div');
+            div.className = 'todo-item';
+
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.id = 'check-' + i;
+
+            const label = document.createElement('label');
+            label.htmlFor = checkbox.id;
+            label.innerText = 'Dia ' + i;
+
+            div.appendChild(label);
+            div.appendChild(checkbox);
+            todoList.appendChild(div);
+
+            if (savedTasks[i]) {
+                checkbox.checked = true;
+                div.classList.add('completed');
+                checkedCount++;
+            }
+
+            checkbox.addEventListener('change', function () {
+                if (checkbox.checked) {
+                    div.classList.add('completed');
+                    checkedCount++;
+                    savedTasks[i] = true;
+                    showBottomSheet(biblicQuotes[i - 1]);
+                } else {
+                    div.classList.remove('completed');
+                    checkedCount--;
+                    savedTasks[i] = false;
+                }
+                localStorage.setItem('tasks', JSON.stringify(savedTasks));
+                if (checkedCount === 30) {
+                    lançarConfetes();
+                }
+            });
+        }
+
+        function lançarConfetes() {
+            var duration = 3 * 1000;
+            var end = Date.now() + duration;
+
+            (function frame() {
+                confetti({
+                    particleCount: 5,
+                    angle: 60,
+                    spread: 55,
+                    origin: { x: 0 }
+                });
+                confetti({
+                    particleCount: 5,
+                    angle: 120,
+                    spread: 55,
+                    origin: { x: 1 }
+                });
+
+                if (Date.now() < end) {
+                    requestAnimationFrame(frame);
+                }
+            }());
+        }
+
+        // bottom sheet
+        function showBottomSheet(message) {
+            bottomSheet.innerText = message;
+            bottomSheet.style.bottom = '0';
+            setTimeout(() => {
+                bottomSheet.style.bottom = '-100px'; // Esconder após 7 segundos
+            }, 7000);
+        }
+
+        // Verificar se é a primeira vez que está acessando
+        if (!localStorage.getItem('bottomSheetShown')) {
+            showBottomSheet();
+            localStorage.setItem('bottomSheetShown', 'true');
+        }
+        // PWA
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/service-worker.js').then(registration => {
+                    console.log('Service Worker registrado com sucesso:', registration.scope);
+                }).catch(error => {
+                    console.log('Falha ao registrar Service Worker:', error);
+                });
+            });
+        }
+    </script>
+</body>
+</html>
